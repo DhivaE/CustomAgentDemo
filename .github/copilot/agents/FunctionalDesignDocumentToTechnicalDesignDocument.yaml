@@ -1,42 +1,52 @@
 name: FunctionalDesignDocumentToTechnicalDesignDocument
-description: >
-  Converts Functional Design Document (FDD) content into a Technical Design
-  Document (TDD) JSON by grounding generation in repository knowledge files.
+description: Generate TDD JSON from FDD using repository-grounded rules
 
 instructions:
-  # Step 1: Fetch FDD content
-  - Call the following API to retrieve the Functional Design Document content:
-      method: GET
-      url: http://localhost:7088/api/getWorkitem/1188489
-      responseVariable: FDDContent
+  # 1. Read user input
+  - step: extract_input
+    description: Extract Work Item ID from the user prompt
+    output: workItemId
 
-  # Step 2: Ground the agent using repository knowledge
-  - Before generating any output, read and understand all repository files under:
-      - .knowledge/
+  # 2. Call API using extracted Work Item ID
+  - step: fetch_fdd
+    description: Fetch FDD content from DevOps work item
+    tool: http
+    method: GET
+    url: http://localhost:7088/api/getWorkitem/{workItemId}
+    responseVariable: FDDContent
+    waitForResponse: true
 
-  - Treat the repository files as the authoritative knowledge base:
-      - Design rules, constraints, and values must be taken from .knowledge files
-      - Do NOT invent rules or values not present in FDDContent or repository files
+  # 3. Ensure FDD content is available before proceeding
+  - step: validate_fdd
+    description: Proceed only after FDDContent is fully retrieved
+    condition: FDDContent != null
 
-  # Step 3: Apply prompt instructions
-  - Follow all generation rules, constraints, and output requirements defined in:
-      promptFile: .prompts/FDD2TDDSystemMessage.md
+  # 4. Ground the agent using repository knowledge
+  - step: load_repo_knowledge
+    description: |
+      Read and apply repository knowledge before generation.
+      Use the following as authoritative sources:
+      - .knowledge/technical-standards.md
+      - .knowledge/business-rules.md
+      - .samples/sample-tdd-structure.json
 
-  # Step 4: Conflict resolution
-  - If there is a conflict:
-      - Repository knowledge overrides assumptions
-      - FDDContent overrides generic behavior
-      - Prompt defines formatting and behavior only
+  # 5. Apply system prompt rules
+  - step: apply_prompt_rules
+    description: Follow all instructions defined in the system prompt
+    promptFile: .prompts/FDD2TDDSystemMessage.md
 
-  # Step 5: Output rules
-  - Generate the Technical Design Document strictly in valid JSON format
-  - Ensure the output reflects repository-defined standards
-  - Do not include explanations, markdown, or commentary outside JSON
+  # 6. Generate output
+  - step: generate_tdd
+    description: |
+      Generate Technical Design Document strictly as JSON.
+      - Follow structure from sample-tdd-structure.json
+      - Apply naming and design rules from repository knowledge
+      - Do not invent values not present in FDD or repo files
+      - Output JSON only
 
 capabilities:
   tools:
     - http
 
-context:
-  inputs:
-    - FDDContent
+output:
+  format: json
