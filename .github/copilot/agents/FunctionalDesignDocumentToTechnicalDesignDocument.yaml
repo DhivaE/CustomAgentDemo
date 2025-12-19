@@ -1,18 +1,37 @@
-name: FDD-to-TDD-Agent
-description: Converts FDD content to structured TDD JSON
+name: FunctionalDesignDocumentToTechnicalDesignDocument
+description: >
+  Converts Functional Design Document (FDD) content into a Technical Design
+  Document (TDD) JSON by grounding generation in repository knowledge files.
 
 instructions:
-  - Call the API to fetch FDD content before processing:
+  # Step 1: Fetch FDD content
+  - Call the following API to retrieve the Functional Design Document content:
       method: GET
       url: http://localhost:7088/api/getWorkitem/1188489
       responseVariable: FDDContent
 
-  - Use the fetched FDDContent as the primary input.
+  # Step 2: Ground the agent using repository knowledge
+  - Before generating any output, read and understand all repository files under:
+      - .knowledge/
 
-  - Follow the rules, structure, and generation logic defined in:
+  - Treat the repository files as the authoritative knowledge base:
+      - Design rules, constraints, and values must be taken from .knowledge files
+      - Do NOT invent rules or values not present in FDDContent or repository files
+
+  # Step 3: Apply prompt instructions
+  - Follow all generation rules, constraints, and output requirements defined in:
       promptFile: .prompts/FDD2TDDSystemMessage.md
 
-  - Generate the output strictly as TDD JSON as specified in the prompt file.
+  # Step 4: Conflict resolution
+  - If there is a conflict:
+      - Repository knowledge overrides assumptions
+      - FDDContent overrides generic behavior
+      - Prompt defines formatting and behavior only
+
+  # Step 5: Output rules
+  - Generate the Technical Design Document strictly in valid JSON format
+  - Ensure the output reflects repository-defined standards
+  - Do not include explanations, markdown, or commentary outside JSON
 
 capabilities:
   tools:
