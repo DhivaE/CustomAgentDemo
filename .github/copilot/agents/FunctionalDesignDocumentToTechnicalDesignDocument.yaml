@@ -27,8 +27,6 @@ instructions:
       Read and apply repository knowledge before generation.
       Use the following as authoritative sources:
       - .knowledge/technical-standards.md
-      - .knowledge/business-rules.md
-      - .samples/sample-tdd-structure.json
 
   # 5. Apply system prompt rules
   - step: apply_prompt_rules
