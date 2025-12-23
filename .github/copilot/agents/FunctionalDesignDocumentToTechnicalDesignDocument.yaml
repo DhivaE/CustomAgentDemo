@@ -29,11 +29,8 @@ instructions:
       - Use **FDDContent** as the primary source of truth.
       - Use repository knowledge files as authoritative:
         - .knowledge/technical-standards.md
-        - .knowledge/domain-glossary.md
       - Follow all rules defined in:
         - .prompts/FDD2TDDSystemMessage.md
-      - Follow the JSON structure defined in:
-        - .schemas/sample-tdd-structure.json
 
       ## Generation Rules
       - Generate **JSON only**.
