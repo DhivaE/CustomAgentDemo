@@ -1,49 +1,52 @@
 name: FunctionalDesignDocumentToTechnicalDesignDocument
-description: Generate TDD JSON from FDD using repository-grounded rules
-
-instructions:
-  # 1. Read user input
-  - step: extract_input
-    description: Extract Work Item ID from the user prompt
-    output: workItemId
-
-  # 2. Call API using extracted Work Item ID
-  - step: fetch_fdd
-    description: Fetch FDD content from DevOps work item
-    tool: http
-    method: GET
-    url: https://devcopilotmcp-esceawhsbvekgwgu.eastus2-01.azurewebsites.net/api/fdd/325423?code=aHEE39eovMNux1zFkGLO6OhPvxuJmi_KcH4XWzzbN3BgAzFu_X4uNg==
-    responseVariable: FDDContent
-    waitForResponse: true
-
-  # 3. Ensure FDD content is available before proceeding
-  - step: validate_fdd
-    description: Proceed only after FDDContent is fully retrieved
-    condition: FDDContent != null
-
-  # 4. Ground the agent using repository knowledge
-  - step: load_repo_knowledge
-    description: |
-      Read and apply repository knowledge before generation.
-      Use the following as authoritative sources:
-      - .knowledge/technical-standards.md
-
-  # 5. Apply system prompt rules
-  - step: apply_prompt_rules
-    description: Follow all instructions defined in the system prompt
-    promptFile: .prompts/FDD2TDDSystemMessage.md
-
-  # 6. Generate output
-  - step: generate_tdd
-    description: |
-      Generate Technical Design Document strictly as JSON.
-      - Apply naming and design rules from repository knowledge
-      - Do not invent values not present in FDD or repo files
-      - Output JSON only
+description: Generate Technical Design Document (TDD) JSON from FDD using repository-grounded rules
 
 capabilities:
   tools:
     - http
+
+instructions:
+
+  # 1. Extract Work Item ID from user prompt
+  - step: extract_input
+    description: Extract Work Item ID from the user prompt
+    output: workItemId
+
+  # 2. Fetch FDD JSON from MCP Azure Function
+  - step: fetch_fdd
+    description: Fetch FDD content from MCP service
+    tool: http
+    method: GET
+    url: https://devcopilotmcp-esceawhsbvekgwgu.eastus2-01.azurewebsites.net/api/fdd/{workItemId}?code=aHEE39eovMNux1zFkGLO6OhPvxuJmi_KcH4XWzzbN3BgAzFu_X4uNg==
+    responseVariable: FDDContent
+
+  # 3. Generate TDD JSON using FDD + knowledge base + prompt rules
+  - step: generate_tdd
+    description: |
+      You are generating a Technical Design Document (TDD).
+
+      ## Authoritative Inputs
+      - Use **FDDContent** as the primary source of truth.
+      - Use repository knowledge files as authoritative:
+        - .knowledge/technical-standards.md
+        - .knowledge/domain-glossary.md
+      - Follow all rules defined in:
+        - .prompts/FDD2TDDSystemMessage.md
+      - Follow the JSON structure defined in:
+        - .schemas/sample-tdd-structure.json
+
+      ## Generation Rules
+      - Generate **JSON only**.
+      - Do NOT invent values not present in FDDContent or repository knowledge.
+      - If a section is not defined in FDDContent, output `null` or an empty array.
+      - Use exact naming conventions from technical standards.
+      - Ensure relationships, entities, validations, and security are explicitly mapped.
+
+      ## Output Expectations
+      - Output must strictly conform to the sample TDD schema.
+      - No markdown.
+      - No explanations.
+      - No comments.
 
 output:
   format: json
