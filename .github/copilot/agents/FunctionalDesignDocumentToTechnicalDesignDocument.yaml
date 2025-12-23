@@ -14,50 +14,57 @@ instructions:
       The work item always belongs to Azure DevOps.
     output: workItemId
 
-  # 2. Fetch FDD from MCP (single source of truth)
+  # 2. Fetch FDD from MCP
   - step: fetch_fdd
     description: |
       Fetch Functional Design Document (FDD) content using the MCP Azure Function.
-      This MCP endpoint is the ONLY source of FDD data.
-      Do NOT attempt to locate the work item elsewhere.
+      This is the ONLY allowed source of FDD data.
     tool: http
     method: GET
     url: https://devcopilotmcp-esceawhsbvekgwgu.eastus2-01.azurewebsites.net/api/fdd/{workItemId}?code=aHEE39eovMNux1zFkGLO6OhPvxuJmi_KcH4XWzzbN3BgAzFu_X4uNg==
     responseVariable: FDDContent
 
-  # 3. Generate TDD JSON
+  # 3. Generate TDD JSON (FORCED CONTEXT)
   - step: generate_tdd
     description: |
       You are generating a Technical Design Document (TDD).
 
-      ## Locked Assumptions (Do NOT ask questions)
-      - The work item is an Azure DevOps work item.
-      - "FDD" means Functional Design Document.
-      - FDDContent retrieved from MCP is complete and authoritative.
-      - No additional user input is required.
-      - Do NOT ask clarification questions.
-      - Do NOT request URLs, repositories, templates, or formats.
+      ===============================
+      FUNCTIONAL DESIGN DOCUMENT (FDD)
+      ===============================
+      The following JSON is the complete and authoritative FDD.
+      You MUST use ONLY this content.
 
-      ## Authoritative Inputs
-      - Primary input: FDDContent
-      - Repository knowledge files:
+      {{FDDContent}}
+
+      ===============================
+      END OF FDD
+      ===============================
+
+      ## Locked Rules (NON-NEGOTIABLE)
+      - Do NOT attempt to locate the work item elsewhere.
+      - Do NOT ask for URLs, repositories, or links.
+      - Do NOT ask clarifying questions.
+      - Do NOT request templates or formats.
+      - The FDD above is complete and sufficient.
+
+      ## Authoritative References
+      - Repository knowledge:
         - .knowledge/technical-standards.md
       - System rules:
         - .prompts/FDD2TDDSystemMessage.md
-
-      ## Generation Rules
-      - Generate strictly valid JSON.
-      - Follow the output schema exactly.
-      - Do NOT invent data.
-      - If data is missing, use null or empty arrays.
-      - Apply D365, security, validation, and entity rules from knowledge files.
+      - Output schema:
+        - .schemas/sample-tdd-structure.json
 
       ## Output Rules
-      - JSON only.
+      - Output strictly valid JSON.
+      - Follow the schema exactly.
+      - Do NOT invent data.
+      - If something is missing, use null or empty arrays.
       - No markdown.
       - No explanations.
-      - No questions.
       - No comments.
+      - No questions.
 
 output:
   format: json
