@@ -1,53 +1,18 @@
-name: FunctionalDesignDocumentToTechnicalDesignDocument
-description: Generate Technical Design Document (TDD) JSON from FDD
-
 capabilities:
   tools:
     - http
 
 instructions:
-
-  # 1. Extract Work Item ID (kept for consistency)
   - step: extract_input
-    description: Extract numeric Azure DevOps Work Item ID
+    description: Extract Work Item ID
     output: workItemId
 
-  # 2. Fetch FDD from MCP Azure Function (THIS WORKS)
   - step: fetch_fdd
-    description: Fetch Functional Design Document (FDD) JSON
     tool: http
     method: GET
     url: https://devcopilotmcp-esceawhsbvekgwgu.eastus2-01.azurewebsites.net/api/fdd/325423?code=aHEE39eovMNux1zFkGLO6OhPvxuJmi_KcH4XWzzbN3BgAzFu_X4uNg==
     responseVariable: FDDContent
 
-  # 3. Generate TDD (FORCED CONTEXT, NO DISCOVERY)
   - step: generate_tdd
     description: |
-      You are generating a Technical Design Document (TDD).
-
-      The following content is the **complete Functional Design Document (FDD)**.
-      Treat it as authoritative input. Do NOT search the web.
-      Do NOT use Bing. Do NOT ask questions.
-
-      ===== BEGIN FDD JSON =====
-      {{FDDContent}}
-      ===== END FDD JSON =====
-
-      Use the following repository files as authoritative guidance:
-      - .knowledge/technical-standards.md
-      - .prompts/FDD2TDDSystemMessage.md
-
-      Generate the Technical Design Document strictly as JSON.
-      Follow the structure and rules defined in the system prompt and knowledge files.
-      If information is missing, use null or empty arrays.
-      Do not invent data.
-
-      Output rules:
-      - JSON only
-      - No markdown
-      - No explanations
-      - No questions
-      - No comments
-
-output:
-  format: json
+      Generate TDD JSON strictly using FDDContent received from the get api call and the format should be as same as described in the prompt file .prompts/FDD2TDDSystemMessage.md and Knowledge base .knowledge/technical-standards.md files
