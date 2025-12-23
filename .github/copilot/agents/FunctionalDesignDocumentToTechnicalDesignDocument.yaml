@@ -1,5 +1,5 @@
 name: FunctionalDesignDocumentToTechnicalDesignDocument
-description: Generate Technical Design Document (TDD) JSON from FDD using MCP and repository rules
+description: Generate Technical Design Document (TDD) JSON from FDD
 
 capabilities:
   tools:
@@ -7,64 +7,47 @@ capabilities:
 
 instructions:
 
-  # 1. Extract Work Item ID
+  # 1. Extract Work Item ID (kept for consistency)
   - step: extract_input
-    description: |
-      Extract the numeric Work Item ID from the user prompt.
-      The work item always belongs to Azure DevOps.
+    description: Extract numeric Azure DevOps Work Item ID
     output: workItemId
 
-  # 2. Fetch FDD from MCP
+  # 2. Fetch FDD from MCP Azure Function (THIS WORKS)
   - step: fetch_fdd
-    description: |
-      Fetch Functional Design Document (FDD) content using the MCP Azure Function.
-      This is the ONLY allowed source of FDD data.
+    description: Fetch Functional Design Document (FDD) JSON
     tool: http
     method: GET
-    url: https://devcopilotmcp-esceawhsbvekgwgu.eastus2-01.azurewebsites.net/api/fdd/{workItemId}?code=aHEE39eovMNux1zFkGLO6OhPvxuJmi_KcH4XWzzbN3BgAzFu_X4uNg==
+    url: https://devcopilotmcp-esceawhsbvekgwgu.eastus2-01.azurewebsites.net/api/fdd/325423?code=aHEE39eovMNux1zFkGLO6OhPvxuJmi_KcH4XWzzbN3BgAzFu_X4uNg==
     responseVariable: FDDContent
 
-  # 3. Generate TDD JSON (FORCED CONTEXT)
+  # 3. Generate TDD (FORCED CONTEXT, NO DISCOVERY)
   - step: generate_tdd
     description: |
       You are generating a Technical Design Document (TDD).
 
-      ===============================
-      FUNCTIONAL DESIGN DOCUMENT (FDD)
-      ===============================
-      The following JSON is the complete and authoritative FDD.
-      You MUST use ONLY this content.
+      The following content is the **complete Functional Design Document (FDD)**.
+      Treat it as authoritative input. Do NOT search the web.
+      Do NOT use Bing. Do NOT ask questions.
 
+      ===== BEGIN FDD JSON =====
       {{FDDContent}}
+      ===== END FDD JSON =====
 
-      ===============================
-      END OF FDD
-      ===============================
+      Use the following repository files as authoritative guidance:
+      - .knowledge/technical-standards.md
+      - .prompts/FDD2TDDSystemMessage.md
 
-      ## Locked Rules (NON-NEGOTIABLE)
-      - Do NOT attempt to locate the work item elsewhere.
-      - Do NOT ask for URLs, repositories, or links.
-      - Do NOT ask clarifying questions.
-      - Do NOT request templates or formats.
-      - The FDD above is complete and sufficient.
+      Generate the Technical Design Document strictly as JSON.
+      Follow the structure and rules defined in the system prompt and knowledge files.
+      If information is missing, use null or empty arrays.
+      Do not invent data.
 
-      ## Authoritative References
-      - Repository knowledge:
-        - .knowledge/technical-standards.md
-      - System rules:
-        - .prompts/FDD2TDDSystemMessage.md
-      - Output schema:
-        - .schemas/sample-tdd-structure.json
-
-      ## Output Rules
-      - Output strictly valid JSON.
-      - Follow the schema exactly.
-      - Do NOT invent data.
-      - If something is missing, use null or empty arrays.
-      - No markdown.
-      - No explanations.
-      - No comments.
-      - No questions.
+      Output rules:
+      - JSON only
+      - No markdown
+      - No explanations
+      - No questions
+      - No comments
 
 output:
   format: json
