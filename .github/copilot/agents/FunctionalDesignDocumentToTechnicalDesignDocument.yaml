@@ -1,50 +1,18 @@
-name: FunctionalDesignDocumentToTechnicalDesignDocument
-description: Generate TDD JSON from FDD using repository-grounded rules
-
-instructions:
-  # 1. Read user input
-  - step: extract_input
-    description: Extract Work Item ID from the user prompt
-    output: workItemId
-
-  # 2. Call API using extracted Work Item ID
-  - step: fetch_fdd
-    description: Fetch FDD content from DevOps work item
-    tool: http
-    method: GET
-    url: http://localhost:7088/api/getWorkitem/{workItemId}
-    responseVariable: FDDContent
-    waitForResponse: true
-
-  # 3. Ensure FDD content is available before proceeding
-  - step: validate_fdd
-    description: Proceed only after FDDContent is fully retrieved
-    condition: FDDContent != null
-
-  # 4. Ground the agent using repository knowledge
-  - step: load_repo_knowledge
-    description: |
-      Read and apply repository knowledge before generation.
-      Use the following as authoritative sources:
-      - .knowledge/technical-standards.md
-
-  # 5. Apply system prompt rules
-  - step: apply_prompt_rules
-    description: Follow all instructions defined in the system prompt
-    promptFile: .prompts/FDD2TDDSystemMessage.md
-
-  # 6. Generate output
-  - step: generate_tdd
-    description: |
-      Generate Technical Design Document strictly as JSON.
-      - Follow structure from sample-tdd-structure.json
-      - Apply naming and design rules from repository knowledge
-      - Do not invent values not present in FDD or repo files
-      - Output JSON only
-
 capabilities:
   tools:
     - http
 
-output:
-  format: json
+instructions:
+  - step: extract_input
+    description: Extract Work Item ID
+    output: workItemId
+
+  - step: fetch_fdd
+    tool: http
+    method: GET
+    url: https://devcopilotmcp-esceawhsbvekgwgu.eastus2-01.azurewebsites.net/api/fdd/325423?code=aHEE39eovMNux1zFkGLO6OhPvxuJmi_KcH4XWzzbN3BgAzFu_X4uNg==
+    responseVariable: FDDContent
+
+  - step: generate_tdd
+    description: |
+      Generate TDD JSON using FDDContent
